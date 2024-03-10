@@ -4,6 +4,37 @@ let ctx = canvas.getContext("2d"); //2d object. objet will give you properties t
 canvas.width = 1000; //specify how many pixels it will be 
 canvas.height = 1000; 
 document.body.appendChild(canvas); //Append element to the body
+var counter = 0;
+
+// lots of variables to keep track of sprite geometry
+//  I have 4 rows and 3 cols in my space ship sprite sheet
+var rows = 4;
+var cols = 3;
+
+
+var trackRight = 2;
+
+var trackLeft = 1;
+var trackUp = 0;   // not using up and down in this version, see next version
+var trackDown = 3;
+
+var spriteWidth = 96; // also  spriteWidth/cols; 
+var spriteHeight = 192;  // also spriteHeight/rows; 
+var width = spriteWidth / cols; 
+var height = spriteHeight / rows; 
+
+var curXFrame = 0; // start on left side
+var frameCount = 3;  // 3 frames per row
+//x and y coordinates of the overall sprite image to get the single frame  we want
+var srcX = 0;  // our image has no borders or other stuff
+var srcY = 0;
+
+//Assuming that at start the character will move right side 
+var left = false;
+var right = false;
+var up = false;
+var down = false;
+
 
 //Sounds 
 let soundGameOver = "sound/gameover.wav"; //Game Over sound efx
@@ -18,7 +49,7 @@ let bgImage = new Image();
 bgImage.onload = function () { 
 bgReady = true;
 };
-bgImage.src = "images/background.jpeg";
+bgImage.src = "images/background.png";
 
 //Edge (cobwebs) image hoirzontal 
 let edgeReady = false; 
@@ -40,7 +71,8 @@ let ghostImage = new Image();
 ghostImage.onload = function () {
 ghostReady = true;
 };
-ghostImage.src = "images/ghost.png";
+ghostImage.src = "images/sprite.png";
+
 // Candy (monster) image
 let candyReady = false;
 let candyImage = new Image();
@@ -88,21 +120,69 @@ delete keysDown[e.keyCode];
 
 // Update game objects
 let update = function (modifier) {
+    left = false;
+    right = false;
+    up = false;
+    down = false;
+   
+
     if (38 in keysDown && ghost.y > 32+0) { // holding up key
         ghost.y -= ghost.speed * modifier;
+        down = true;
     }
     if (40 in keysDown && ghost.y < canvas.height - (64 + 0)) { // holding down key
         ghost.y += ghost.speed * modifier;
+        up = true;
+
     }
     if (37 in keysDown && ghost.x > (32+0)) { // holding left key
         ghost.x -= ghost.speed * modifier;
+        left = true;   // for animation
     }
     if (39 in keysDown && ghost.x < canvas.width - (64 + 0)) { // holding right key
-            ghost.x += ghost.speed * modifier;
+        ghost.x += ghost.speed * modifier;
+        right = true; // for animation
     }
-    //These if statements check that the ghost  stops at the hedges of the game so that it does not go out o bounds based on the x and y position.     
+    
+    //curXFrame = ++curXFrame % frameCount; 	//Updating the sprite frame index 
+    // it will count 0,1,2,0,1,2,0, etc
 
-    //after they move we check: 
+    if (counter == 5) {  // adjust this to change "walking speed" of animation
+        curXFrame = ++curXFrame % frameCount; 	//Updating the sprite frame index 
+        // it will count 0,1,2,0,1,2,0, etc
+        counter = 0;
+    } else {
+        counter++;
+    }
+
+    srcX = curXFrame * width;   	//Calculating the x coordinate for spritesheet 
+    //if left is true,  pick Y dim of the correct row
+    if (left) {
+        //calculate srcY 
+        srcY = trackLeft * height;
+    }
+
+    //if the right is true,   pick Y dim of the correct row
+    if (right) {
+        //calculating y coordinate for spritesheet
+        srcY = trackRight * height;
+    }
+
+    if (up) {
+        //calculate srcY 
+        srcY = trackUp * height;
+    }
+
+    if (down) {
+        //calculate srcY 
+        srcY = trackDown * height;
+    }
+
+    if (left == false && right == false && up == false && down == false) {
+        srcX = 1 * width;
+        srcY = 0 * height;
+    }
+
     // Are they touching? How to check for collision. slow the speed down of ghost to check math is correct.m
     if (
         ghost.x <= (candy.x + 32)
@@ -112,6 +192,10 @@ let update = function (modifier) {
     ) {
     ++candiesCaught; // keep track of our “score” what score? 
     console.log('got em')
+
+    
+
+
     // play sound when touch
 	
     if(candiesCaught < 3) {
@@ -136,22 +220,25 @@ let update = function (modifier) {
 // Draw everything in the main render function
 let render = function () {
     if (bgReady) {
-        console.log('here2');
+        //console.log('here2');
     ctx.drawImage(bgImage, 0, 0);
     }
     if (edgeReady) {
-        console.log('here2');
+        //console.log('here2');
         ctx.drawImage(edgeImage, 0, 0);
         ctx.drawImage(edgeImage, 0, 968)
     }
     if (edgeReady2) {
-        console.log('here2');
+        //console.log('here2');
         ctx.drawImage(edgeImage2, 0, 0);
         ctx.drawImage(edgeImage2, 968, 0)
     }
+
     if (ghostReady) {
-        ctx.drawImage(ghostImage, ghost.x, ghost.y);
+        //ctx.drawImage(heroImage, hero.x, hero.y);
+         ctx.drawImage(ghostImage, srcX, srcY, width, height, ghost.x, ghost.y, width, height);
     }
+
     if (candyReady) {
         ctx.drawImage(candyImage, candy.x, candy.y);
     }
