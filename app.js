@@ -21,10 +21,6 @@ let setTimerPosition = function() {
     timerDiv.style.padding = "5px 10px";
 };
 
-let counter = 0;
-let timerRunning = false;
-let secondsLeft = 15;
-let timer;
 
 //Spritesheet movements 
 
@@ -105,6 +101,12 @@ candyImage.src = "images/ghostcandy.PNG";
 //==============Done creating image objects ====================
 
 // Game objects
+
+let counter = 0;
+let timerRunning = false;
+let secondsLeft = 15;
+let timer;
+
 let ghost = {
     speed: 256, // movement in pixels per second. scaling the ghost speed based on the overall game.
     x: 32 + (Math.random() * (canvas.width - 96)),
@@ -141,12 +143,13 @@ delete keysDown[e.keyCode];
 // Timer countdown
 let startTimer = function () {
     clearInterval(timer); //reset the timer if alredy running 
-    let seconds = secondsLeft; // 15 seconds countdown
+    let seconds = secondsLeft; 
     timer = setInterval(function () {
         seconds--;
         if (seconds <= 0) {
             clearInterval(timer);
             endGame();
+            reset();
         }
         timerDiv.textContent = 'Time: ' + seconds;
     }, 1000);
@@ -157,9 +160,9 @@ let endGame = function () {
 
     if (candiesCaught < 3 || timer <0) {
         alert("Time's up! Game over.");
-       
-    }
-   reset(); 
+       reset(); 
+    } 
+   
 };
 
 //candies initialized and placed in random places 
@@ -264,20 +267,22 @@ let update = function (modifier) {
         
     }
     // Play game over sound only when all 3 candies are caught
-    if (candiesCaught == 3) {
+    if (candiesCaught == 3 ) {
         soundEfx.src = soundGameOver;
         soundEfx.play();
-        // Once the sound ends, show the alert
-        alert("Congratulations! You caught all the candies!");
+        // Function to be executed once the sound ends
+        
+        // Show the alert after the sound ends
+        alert("Congratulations! You caught all the candies! Click OK to try again!");
         // Reset the game
         reset();
-        resetTimer();
         
-       
-    } 
+    }
+}
 
-    
-};
+      
+       
+
 
 // Draw everything in the main render function
 let render = function () {
@@ -322,6 +327,26 @@ let render = function () {
         
 };
 
+
+
+// Reset the game when the player catches a candy
+let reset = function () {
+    alert("Start the game! Help the ghost catch all the candies in time!");
+    
+    ghost.x = Math.random() * (canvas.width  - 32);
+    ghost.y = Math.random() * (canvas.height  - 32);
+    
+       
+    initializeCandies();
+    candiesCaught = 0; 
+    resetTimer();
+};
+// Function to reset the timer
+let resetTimer = function () {
+    clearInterval(timer);
+    secondsLeft = 15;
+    startTimer();
+};
 // The main game loop
 let main = function () {
     let now = Date.now();
@@ -332,30 +357,10 @@ let main = function () {
     // Request to do this again ASAP
     requestAnimationFrame(main);
 }
-
-// Reset the game when the player catches a candy
-let reset = function () {
-
-        ghost.x = (canvas.width / 2) -32;
-        ghost.y = (canvas.height / 2) -32;
-        //Place the candy somewhere on the screen randomly
-        // but not in the hedges, Article in wrong, the 64 needs to be
-        // hedge 32 + hedge 32 + char 32 = 96
-        initializeCandies();
-        candiesCaught = 0; 
-        resetTimer();
-};
-// Function to reset the timer
-let resetTimer = function () {
-    clearInterval(timer);
-    secondsLeft = 15;
-    startTimer();
-};
-   
 // Let's play this game!
 let then = Date.now();
 initializeCandies();
 startTimer();
+setTimerPosition();
 main();
-reset();
     
