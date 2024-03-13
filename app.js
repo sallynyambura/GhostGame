@@ -4,36 +4,56 @@ let ctx = canvas.getContext("2d"); //2d object. objet will give you properties t
 canvas.width = 1000; //specify how many pixels it will be 
 canvas.height = 1000; 
 document.body.appendChild(canvas); //Append element to the body
-var counter = 0;
-
-// lots of variables to keep track of sprite geometry
-//  I have 4 rows and 3 cols in my space ship sprite sheet
-var rows = 4;
-var cols = 3;
 
 
-var trackRight = 2;
+// Create the timer div element
+let timerDiv = document.createElement("div");
+timerDiv.id = "timer"; // Set the ID for styling
+document.body.appendChild(timerDiv); // Append timer div to the body
 
-var trackLeft = 1;
-var trackUp = 0;   // not using up and down in this version, see next version
-var trackDown = 3;
+// Styles set  for the timer div
+let setTimerPosition = function() {
+    timerDiv.style.position = "absolute";
+    timerDiv.style.top = canvas.offsetTop + 32 + "px"; // Adjust top position as needed
+    timerDiv.style.right = document.body.clientWidth - canvas.offsetLeft - canvas.width + 60 + "px"; // Adjust right position relative to canvas
+    timerDiv.style.font = "24px Helvetica";
+    timerDiv.style.color = "white";
+    timerDiv.style.padding = "5px 10px";
+};
 
-var spriteWidth = 96; // also  spriteWidth/cols; 
-var spriteHeight = 192;  // also spriteHeight/rows; 
-var width = spriteWidth / cols; 
-var height = spriteHeight / rows; 
+let counter = 0;
+let timerRunning = false;
+let secondsLeft = 15;
+let timer;
 
-var curXFrame = 0; // start on left side
-var frameCount = 3;  // 3 frames per row
+//Spritesheet movements 
+
+let rows = 4;
+let cols = 3;
+
+
+let trackRight = 2;
+
+let trackLeft = 1;
+let trackUp = 0;   // not using up and down in this version, see next version
+let trackDown = 3;
+
+let spriteWidth = 96; // also  spriteWidth/cols; 
+let spriteHeight = 192;  // also spriteHeight/rows; 
+let width = spriteWidth / cols; 
+let height = spriteHeight / rows; 
+
+let curXFrame = 0; // start on left side
+let frameCount = 3;  // 3 frames per row
 //x and y coordinates of the overall sprite image to get the single frame  we want
-var srcX = 0;  // our image has no borders or other stuff
-var srcY = 0;
+let srcX = 0;  // our image has no borders or other stuff
+let srcY = 0;
 
 //Assuming that at start the character will move right side 
-var left = false;
-var right = false;
-var up = false;
-var down = false;
+let left = false;
+let right = false;
+let up = false;
+let down = false;
 
 
 //Sounds 
@@ -48,6 +68,7 @@ let bgReady = false;
 let bgImage = new Image();
 bgImage.onload = function () { 
 bgReady = true;
+setTimerPosition();
 };
 bgImage.src = "images/background.png";
 
@@ -86,14 +107,12 @@ candyImage.src = "images/ghostcandy.PNG";
 // Game objects
 let ghost = {
     speed: 256, // movement in pixels per second. scaling the ghost speed based on the overall game.
-    x: 0, // where on the canvas are they?
-    y: 0 // where on the canvas are they?
+    x: 32 + (Math.random() * (canvas.width - 96)),
+    y: 32 + (Math.random() * (canvas.height - 96))
 };
-let candy = {
-    // for this version, the candy does not move, so just and x and y
-    x: 0,
-    y: 0
-};
+
+
+let candies = [];
 let candiesCaught = 0;
 //=============== Done with other variables =======
 
@@ -117,6 +136,43 @@ delete keysDown[e.keyCode];
 }, false);
 
 //function definitons
+
+
+// Timer countdown
+let startTimer = function () {
+    clearInterval(timer); //reset the timer if alredy running 
+    let seconds = secondsLeft; // 15 seconds countdown
+    timer = setInterval(function () {
+        seconds--;
+        if (seconds <= 0) {
+            clearInterval(timer);
+            endGame();
+        }
+        timerDiv.textContent = 'Time: ' + seconds;
+    }, 1000);
+};
+
+// Function to end the game
+let endGame = function () {
+
+    if (candiesCaught < 3 || timer <0) {
+        alert("Time's up! Game over.");
+       
+    }
+   reset(); 
+};
+
+//candies initialized and placed in random places 
+let initializeCandies = function () {
+    candies = [];
+    for (let i = 0; i < 3; i++) {
+        let candy = {
+            x: 32 + (Math.random() * (canvas.width - 96)),
+            y: 32 + (Math.random() * (canvas.height - 96))
+        };
+        candies.push(candy);
+    }
+};
 
 // Update game objects
 let update = function (modifier) {
@@ -143,7 +199,11 @@ let update = function (modifier) {
         ghost.x += ghost.speed * modifier;
         right = true; // for animation
     }
-    
+    if (!timerRunning) {
+        // Start the timer when the ghost starts moving
+        startTimer();
+        timerRunning = true;
+    }
     //curXFrame = ++curXFrame % frameCount; 	//Updating the sprite frame index 
     // it will count 0,1,2,0,1,2,0, etc
 
@@ -183,39 +243,41 @@ let update = function (modifier) {
         srcY = 0 * height;
     }
 
-    // Are they touching? How to check for collision. slow the speed down of ghost to check math is correct.m
-    if (
-        ghost.x <= (candy.x + 32)
-        && candy.x <= (ghost.x + 32)
-        && ghost.y <= (candy.y + 32)
-        && candy.y <= (candy.y + 32)
-    ) {
-    ++candiesCaught; // keep track of our “score” what score? 
-    console.log('got em')
-
-    
-
-
-    // play sound when touch
-	
-    if(candiesCaught < 3) {
-	    soundEfx.src = soundCaught ;
-	    soundEfx.play();
-    } else {
-        soundEfx.addEventListener("ended",function(){
-             alert("Game over, you won!")
-        });
+    //How to check for collision. slow the speed down of ghost to check math is correct.m
+    for (let i = 0; i < candies.length; i++) {
+            if (
+                ghost.x <= (candies[i].x + 32)
+                && candies[i].x <= (ghost.x + 32)
+                && ghost.y <= (candies[i].y + 32)
+                && candies[i].y <= (ghost.y + 32)
+            ) {
+            candies.splice(i, 1);
+            
+            soundEfx.src = soundCaught;
+            soundEfx.play();
+            candiesCaught++; 
+        
+         
+        
+        
+        }
+        
+    }
+    // Play game over sound only when all 3 candies are caught
+    if (candiesCaught == 3) {
         soundEfx.src = soundGameOver;
-	    soundEfx.play();
+        soundEfx.play();
+        // Once the sound ends, show the alert
+        alert("Congratulations! You caught all the candies!");
+        // Reset the game
+        reset();
+        resetTimer();
+        
        
+    } 
 
-    }
-
-	 
-        reset(); // start a new cycle
-    }
     
-}
+};
 
 // Draw everything in the main render function
 let render = function () {
@@ -240,22 +302,30 @@ let render = function () {
     }
 
     if (candyReady) {
-        ctx.drawImage(candyImage, candy.x, candy.y);
+        for (let i = 0; i < candies.length; i++) {
+            ctx.drawImage(candyImage, candies[i].x, candies[i].y);
+        }
+        
     }
+
+
     // Score
     ctx.fillStyle = "rgb(250, 250, 250)";
     ctx.font = "24px Helvetica";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillText("Candy Caught: " + candiesCaught, 32, 32); //x and y coordinated of where text will show
+    ctx.fillText("Candy Caught: " + candiesCaught, 32, 34);
+     
+
+    
+
         
 };
 
 // The main game loop
-// The main game loop (changed)
 let main = function () {
-    var now = Date.now();
-    var delta = now - then;
+    let now = Date.now();
+    let delta = now - then;
     update(delta / 1000); //higher the number, slower, lower the number, faster. Scaling the speed based on the computer.
     render();
     then = now;
@@ -265,22 +335,27 @@ let main = function () {
 
 // Reset the game when the player catches a candy
 let reset = function () {
-    ghost.x = (canvas.width / 2) -16;
-    ghost.y = (canvas.height / 2) -16;
-    //Place the candy somewhere on the screen randomly
-    // but not in the hedges, Article in wrong, the 64 needs to be
-    // hedge 32 + hedge 32 + char 32 = 96
-    candy.x = 32 + (Math.random() * (canvas.width - 96));
-    candy.y = 32 + (Math.random() * (canvas.height - 96)); //push character away from the trees 
+
+        ghost.x = (canvas.width / 2) -32;
+        ghost.y = (canvas.height / 2) -32;
+        //Place the candy somewhere on the screen randomly
+        // but not in the hedges, Article in wrong, the 64 needs to be
+        // hedge 32 + hedge 32 + char 32 = 96
+        initializeCandies();
+        candiesCaught = 0; 
+        resetTimer();
+};
+// Function to reset the timer
+let resetTimer = function () {
+    clearInterval(timer);
+    secondsLeft = 15;
+    startTimer();
 };
    
 // Let's play this game!
 let then = Date.now();
-reset(); 
-main(); 
-//call the main game loop. refreshes the game image
-
-
-
-
+initializeCandies();
+startTimer();
+main();
+reset();
     
