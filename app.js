@@ -248,7 +248,7 @@ let render = function () {
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillText("Candy Caught: " + candiesCaught, 32, 32); //x and y coordinated of where text will show
-        
+    ctx.fillText("Time: " + timeLeft + " seconds", 32, 64);    
 };
 
 // The main game loop
@@ -277,6 +277,22 @@ let reset = function () {
 // Let's play this game!
 let then = Date.now();
 reset(); 
+
+let timeLeft = 30;
+let timeInterval;
+
+function updateTimer() {
+    timeLeft--; 
+    if (timeLeft <= 0) {
+        clearInterval(timerInterval); 
+        if (candiesCaught < 3) {
+            alert("Time's up! You lost the game."); 
+        }
+    }
+}
+
+// timer start
+timerInterval = setInterval(updateTimer, 1000); // update per second
 main(); 
 //call the main game loop. refreshes the game image
 
