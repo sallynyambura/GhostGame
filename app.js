@@ -269,8 +269,8 @@ let render = function () {
     ctx.font = "24px Helvetica";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillText("Time: " + timeLeft + " seconds", 32, 64);    
-    ctx.fillText("Candy Caught: " + candiesCaught, 32, 34);   
+    ctx.fillText("Time: " + timeLeft + " seconds", 36, 64);    
+    ctx.fillText("Candy Caught: " + candiesCaught, 36, 34);   
 };
 
 
@@ -313,7 +313,7 @@ main();
 function updateTimer() {
     if (timeLeft <= 0) {
         clearInterval(timer); 
-        if (candiesCaught < 3) {
+        if (candiesCaught < 3 && timeLeft <=0) {
             alert("Time's up! You lost the game."); 
             reset(); 
         }    
