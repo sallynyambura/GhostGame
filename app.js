@@ -8,23 +8,20 @@ document.body.appendChild(canvas); //Append element to the body
 
 //Spritesheet movements 
 
-let rows = 4;
-let cols = 3;
+let rows = 8;
+let cols = 6;
+let trackRight = 6;
+let trackLeft = 5;
+let trackUp = 4;   // not using up and down in this version, see next version
+let trackDown = 4;
 
-
-let trackRight = 2;
-
-let trackLeft = 1;
-let trackUp = 0;   // not using up and down in this version, see next version
-let trackDown = 3;
-
-let spriteWidth = 96; // also  spriteWidth/cols; 
-let spriteHeight = 192;  // also spriteHeight/rows; 
+let spriteWidth = 400; // also  spriteWidth/cols; 
+let spriteHeight = 531;  // also spriteHeight/rows; 
 let width = spriteWidth / cols; 
 let height = spriteHeight / rows; 
 
 let curXFrame = 0; // start on left side
-let frameCount = 3;  // 3 frames per row
+let frameCount = 5;  // 3 frames per row
 //x and y coordinates of the overall sprite image to get the single frame  we want
 let srcX = 0;  // our image has no borders or other stuff
 let srcY = 0;
@@ -73,7 +70,7 @@ let ghostImage = new Image();
 ghostImage.onload = function () {
 ghostReady = true;
 };
-ghostImage.src = "images/sprite.png";
+ghostImage.src = "images/ghosts.png";
 
 // Candy (monster) image
 let candyReady = false;
@@ -90,8 +87,8 @@ candyImage.src = "images/ghostcandy.PNG";
 let counter = 0;
 let ghost = {
     speed: 256, // movement in pixels per second. scaling the ghost speed based on the overall game.
-    x: 32 + (Math.random() * (canvas.width - 64)),
-    y: 32 + (Math.random() * (canvas.height - 64))
+    x: 32 + (Math.random() * (canvas.width - 100)),
+    y: 32 + (Math.random() * (canvas.height - 100))
 };
 
 
@@ -125,8 +122,8 @@ let initializeCandies = function () {
     candies = [];
     for (let i = 0; i < 3; i++) {
         let candy = {
-            x: 35 + (Math.random() * (canvas.width - 96)),
-            y: 35 + (Math.random() * (canvas.height - 96))
+            x: (Math.random() * (canvas.width - 100)),
+            y: (Math.random() * (canvas.height - 100))
         };
         candies.push(candy);
     }
@@ -140,20 +137,20 @@ let update = function (modifier) {
     down = false;
    
 
-    if (38 in keysDown && ghost.y > 32) { // holding up key
+    if (38 in keysDown && ghost.y > 36) { // holding up key
         ghost.y -= ghost.speed * modifier;
         down = true;
     }
-    if (40 in keysDown && ghost.y < canvas.height - (80)) { // holding down key
+    if (40 in keysDown && ghost.y < canvas.height - (97)) { // holding down key
         ghost.y += ghost.speed * modifier;
         up = true;
 
     }
-    if (37 in keysDown && ghost.x > (32)) { // holding left key
+    if (37 in keysDown && ghost.x > (36)) { // holding left key
         ghost.x -= ghost.speed * modifier;
         left = true;   // for animation
     }
-    if (39 in keysDown && ghost.x < canvas.width - (64)) { // holding right key
+    if (39 in keysDown && ghost.x < canvas.width - (97)) { // holding right key
         ghost.x += ghost.speed * modifier;
         right = true; // for animation
     }
@@ -202,10 +199,10 @@ let update = function (modifier) {
     //How to check for collision. slow the speed down of ghost to check math is correct.m
     for (let i = 0; i < candies.length; i++) {
             if (
-                ghost.x <= (candies[i].x + 32)
-                && candies[i].x <= (ghost.x + 32)
-                && ghost.y <= (candies[i].y + 32)
-                && candies[i].y <= (ghost.y + 32)
+                ghost.x <= (candies[i].x + 36)
+                && candies[i].x <= (ghost.x + 36)
+                && ghost.y <= (candies[i].y + 36)
+                && candies[i].y <= (ghost.y + 36)
             ) {
             candies.splice(i, 1);
             
