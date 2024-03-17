@@ -6,22 +6,6 @@ canvas.height = 1000;
 document.body.appendChild(canvas); //Append element to the body
 
 
-// Create the timer div element
-let timerDiv = document.createElement("div");
-timerDiv.id = "timer"; // Set the ID for styling
-document.body.appendChild(timerDiv); // Append timer div to the body
-
-// Styles set  for the timer div
-let setTimerPosition = function() {
-    timerDiv.style.position = "absolute";
-    timerDiv.style.top = canvas.offsetTop + 32 + "px"; // Adjust top position as needed
-    timerDiv.style.right = document.body.clientWidth - canvas.offsetLeft - canvas.width + 60 + "px"; // Adjust right position relative to canvas
-    timerDiv.style.font = "24px Helvetica";
-    timerDiv.style.color = "white";
-    timerDiv.style.padding = "5px 10px";
-};
-
-
 //Spritesheet movements 
 
 let rows = 4;
@@ -64,7 +48,6 @@ let bgReady = false;
 let bgImage = new Image();
 bgImage.onload = function () { 
 bgReady = true;
-setTimerPosition();
 };
 bgImage.src = "images/background.png";
 
@@ -75,6 +58,7 @@ edgeImage.onload = function () {
 edgeReady = true;
 };
 edgeImage.src = "images/cobwebs.jpeg";
+
 // Edge (cobwebs) image vertical
 let edgeReady2 = false;  
 let edgeImage2 = new Image();
@@ -82,6 +66,7 @@ edgeImage2.onload = function () {
 edgeReady2 = true;
 };
 edgeImage2.src = "images/cobwebsL&R.jpeg"; 
+
 // Ghost (hero) image
 let ghostReady = false;
 let ghostImage = new Image();
@@ -103,14 +88,10 @@ candyImage.src = "images/ghostcandy.PNG";
 // Game objects
 
 let counter = 0;
-let timerRunning = false;
-let secondsLeft = 15;
-let timer;
-
 let ghost = {
     speed: 256, // movement in pixels per second. scaling the ghost speed based on the overall game.
-    x: 32 + (Math.random() * (canvas.width - 96)),
-    y: 32 + (Math.random() * (canvas.height - 96))
+    x: 32 + (Math.random() * (canvas.width - 64)),
+    y: 32 + (Math.random() * (canvas.height - 64))
 };
 
 
@@ -137,41 +118,15 @@ console.log(e.keyCode + " up")
 delete keysDown[e.keyCode];
 }, false);
 
-//function definitons
-
-
-// Timer countdown
-let startTimer = function () {
-    clearInterval(timer); //reset the timer if alredy running 
-    let seconds = secondsLeft; 
-    timer = setInterval(function () {
-        seconds--;
-        if (seconds <= 0) {
-            clearInterval(timer);
-            endGame();
-            reset();
-        }
-        timerDiv.textContent = 'Time: ' + seconds;
-    }, 1000);
-};
-
-// Function to end the game
-let endGame = function () {
-
-    if (candiesCaught < 3 || timer <0) {
-        alert("Time's up! Game over.");
-       reset(); 
-    } 
-   
-};
+//******function definitions*******
 
 //candies initialized and placed in random places 
 let initializeCandies = function () {
     candies = [];
     for (let i = 0; i < 3; i++) {
         let candy = {
-            x: 32 + (Math.random() * (canvas.width - 96)),
-            y: 32 + (Math.random() * (canvas.height - 96))
+            x: 35 + (Math.random() * (canvas.width - 96)),
+            y: 35 + (Math.random() * (canvas.height - 96))
         };
         candies.push(candy);
     }
@@ -185,32 +140,30 @@ let update = function (modifier) {
     down = false;
    
 
-    if (38 in keysDown && ghost.y > 32+0) { // holding up key
+    if (38 in keysDown && ghost.y > 32) { // holding up key
         ghost.y -= ghost.speed * modifier;
         down = true;
     }
-    if (40 in keysDown && ghost.y < canvas.height - (64 + 0)) { // holding down key
+    if (40 in keysDown && ghost.y < canvas.height - (80)) { // holding down key
         ghost.y += ghost.speed * modifier;
         up = true;
 
     }
-    if (37 in keysDown && ghost.x > (32+0)) { // holding left key
+    if (37 in keysDown && ghost.x > (32)) { // holding left key
         ghost.x -= ghost.speed * modifier;
         left = true;   // for animation
     }
-    if (39 in keysDown && ghost.x < canvas.width - (64 + 0)) { // holding right key
+    if (39 in keysDown && ghost.x < canvas.width - (64)) { // holding right key
         ghost.x += ghost.speed * modifier;
         right = true; // for animation
     }
-    if (!timerRunning) {
-        // Start the timer when the ghost starts moving
-        startTimer();
-        timerRunning = true;
-    }
+
+ 
+   
     //curXFrame = ++curXFrame % frameCount; 	//Updating the sprite frame index 
     // it will count 0,1,2,0,1,2,0, etc
 
-    if (counter == 5) {  // adjust this to change "walking speed" of animation
+    if (counter == 3) {  // adjust this to change "walking speed" of animation
         curXFrame = ++curXFrame % frameCount; 	//Updating the sprite frame index 
         // it will count 0,1,2,0,1,2,0, etc
         counter = 0;
@@ -259,15 +212,12 @@ let update = function (modifier) {
             soundEfx.src = soundCaught;
             soundEfx.play();
             candiesCaught++; 
-        
-         
-        
-        
         }
         
     }
+
     // Play game over sound only when all 3 candies are caught
-    if (candiesCaught == 3 ) {
+    if (candiesCaught === 3 ) {
         soundEfx.src = soundGameOver;
         soundEfx.play();
         // Function to be executed once the sound ends
@@ -278,7 +228,7 @@ let update = function (modifier) {
         reset();
         
     }
-}
+};
 
       
        
@@ -319,14 +269,8 @@ let render = function () {
     ctx.font = "24px Helvetica";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillText("Candy Caught: " + candiesCaught, 32, 32); //x and y coordinated of where text will show
     ctx.fillText("Time: " + timeLeft + " seconds", 32, 64);    
-    ctx.fillText("Candy Caught: " + candiesCaught, 32, 34);
-     
-
-    
-
-        
+    ctx.fillText("Candy Caught: " + candiesCaught, 32, 34);   
 };
 
 
@@ -334,21 +278,19 @@ let render = function () {
 // Reset the game when the player catches a candy
 let reset = function () {
     alert("Start the game! Help the ghost catch all the candies in time!");
-    
-    ghost.x = Math.random() * (canvas.width  - 32);
-    ghost.y = Math.random() * (canvas.height  - 32);
-    
-       
     initializeCandies();
     candiesCaught = 0; 
     resetTimer();
+    keysDown = {};
 };
+
 // Function to reset the timer
 let resetTimer = function () {
     clearInterval(timer);
-    secondsLeft = 15;
-    startTimer();
-};
+    timeLeft = 15; 
+    timer = setInterval(updateTimer, 1000); // Start the time
+}; 
+
 // The main game loop
 let main = function () {
     let now = Date.now();
@@ -359,33 +301,26 @@ let main = function () {
     // Request to do this again ASAP
     requestAnimationFrame(main);
 }
-// Let's play this game!
-let then = Date.now();
-reset(); 
 
-let timeLeft = 30;
-let timeInterval;
+// Initialize variables and start the game loop
+let timer;
+let timeLeft = 15;
+let then = Date.now();
+reset();
+initializeCandies();
+main();
 
 function updateTimer() {
-    timeLeft--; 
     if (timeLeft <= 0) {
-        clearInterval(timerInterval); 
+        clearInterval(timer); 
         if (candiesCaught < 3) {
             alert("Time's up! You lost the game."); 
-        }
+            reset(); 
+        }    
+    } else {
+        timeLeft--;
     }
-}
-
-// timer start
-timerInterval = setInterval(updateTimer, 1000); // update per second
-main(); 
-//call the main game loop. refreshes the game image
+};
 
 
-
-
-initializeCandies();
-startTimer();
-setTimerPosition();
-main();
     
