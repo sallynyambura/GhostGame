@@ -284,7 +284,7 @@ let reset = function () {
 // Function to reset the timer
 let resetTimer = function () {
     clearInterval(timer);
-    timeLeft = 15; 
+    timeLeft = 20; 
     timer = setInterval(updateTimer, 1000); // Start the time
 }; 
 
@@ -301,7 +301,7 @@ let main = function () {
 
 // Initialize variables and start the game loop
 let timer;
-let timeLeft = 15;
+let timeLeft = 20;
 let then = Date.now();
 reset();
 initializeCandies();
